@@ -16,6 +16,6 @@ module.exports = (app) => {
   router.route("/images").post(createImage);
   router.route("/images/:img_id/like").post(likeImage);
   router.route("/images/:img_id/like").post(commentImage);
-  router.route("/images/:img_id").delete(index);
+  router.route("/images/:img_id").delete(deleteImage);
   app.use(router);
 };

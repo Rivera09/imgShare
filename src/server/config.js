@@ -8,7 +8,7 @@ const routes = require("../routes");
 
 module.exports = (app) => {
   app.set("port", process.env.PORT || 3000);
-  app.set("views", path.join(__dirname, "views"));
+  app.set("views", path.join(__dirname, "../views"));
   app.engine(
     ".hbs",
     exphbs({
