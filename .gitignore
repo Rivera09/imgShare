@@ -1,5 +1,2 @@
 node_modules
 package-lock.json
-src/public/upload/*
-src/public/upload/temp/*
-!src/public/upload/temp/
