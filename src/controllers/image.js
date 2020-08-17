@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs-extra");
 
+const { Image } = require("../models");
 const { randomNumber } = require("../helpers/libs");
 
 exports.getImage = (req, res) => {
@@ -10,15 +11,28 @@ exports.getImage = (req, res) => {
 exports.createImage = async (req, res) => {
   const validExtensions = [".png", ".jpg", ".jpeg", ".gif"];
   const ext = path.extname(req.file.originalname).toLocaleLowerCase();
+  const imgTempPath = req.file.path;
   if (!validExtensions.includes(ext)) {
-    console.log(`${ext} is not a valid format`);
-    console.log(validExtensions);
-    res.send("wrong type of file, please upload an image");
+    await fs.unlink(imgTempPath);
+    res.status(400).send("wrong type of file, please upload an image");
     return;
   }
-  const imgTempPath = req.file.path;
-  const targetPath = path.resolve(`src/public/upload/${randomNumber() + ext}`);
+  let uniqueId;
+  let images;
+  do {
+    uniqueId = randomNumber();
+    images = Image.find({ uniqueId });
+  } while (images.length > 0);
+  const targetPath = path.resolve(`src/public/upload/${uniqueId+ext}`);
   await fs.rename(imgTempPath, targetPath);
+  const { title, description } = req.body;
+  const newImg = Image({
+    title,
+    uniqueId,
+    ext,
+    description
+  });
+  await newImg.save();
   res.send("works");
 };
 
