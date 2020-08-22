@@ -4,8 +4,9 @@ const fs = require("fs-extra");
 const { Image } = require("../models");
 const { randomNumber } = require("../helpers/libs");
 
-exports.getImage = (req, res) => {
-  res.send("Image page");
+exports.getImage = async (req, res) => {
+  const image = await Image.findOne({ uniqueId: req.params.img_id }).lean();
+  res.render("image",{image});
 };
 
 exports.createImage = async (req, res) => {
@@ -23,17 +24,17 @@ exports.createImage = async (req, res) => {
     uniqueId = randomNumber();
     images = Image.find({ uniqueId });
   } while (images.length > 0);
-  const targetPath = path.resolve(`src/public/upload/${uniqueId+ext}`);
+  const targetPath = path.resolve(`src/public/upload/${uniqueId + ext}`);
   await fs.rename(imgTempPath, targetPath);
   const { title, description } = req.body;
   const newImg = Image({
     title,
     uniqueId,
     ext,
-    description
+    description,
   });
   await newImg.save();
-  res.send("works");
+  res.redirect(`/images/${uniqueId}`);
 };
 
 exports.likeImage = (req, res) => {
