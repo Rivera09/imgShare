@@ -28,3 +28,51 @@
         </p>
     </div>
 </div>
+
+<div class="card mt-2">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Comments</h3>
+        <button class="btn btn-info" id="btn-toggle-comments">
+            <i class="fa fa-comment-o"></i> Publica un comentario
+        </button>
+    </div>
+    <div class="card-body">
+        <blockquote id="post-comment-form">
+            <form action="/images/{{image.uniqueId}}/comment" method="POST">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="name" placeholder="Name" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="email" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <textarea name="comment" rows="2" class="form-control" placeholder="Comment"></textarea>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-success">
+                        <i class="fa fa-comment"></i> Post comment
+                    </button>
+                </div>
+            </form>
+        </blockquote>
+        <ul class="list-group p-4">
+            {{#each comments}}
+            <li class="list-group-item">
+                <div class="row">
+                    <a href="#" class="col text-center">
+                        <img src="http://gravatar.com/avatar/{{gravatar}}?d=monsterid&s=45" alt="">
+                    </a>
+                    <blockquote class="col">
+                        <p class="lead">
+                            {{comment}}
+                        <footer class="blockquote-footer">
+                            {{name}} - {{timeAgo timestamp}}
+                        </footer>
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            {{/each}}
+        </ul>
+    </div>
+</div>

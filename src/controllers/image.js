@@ -1,12 +1,19 @@
 const path = require("path");
 const fs = require("fs-extra");
+const md5 = require("md5");
 
-const { Image } = require("../models");
+const { Image, Comment } = require("../models");
 const { randomNumber } = require("../helpers/libs");
 
 exports.getImage = async (req, res) => {
-  const image = await Image.findOne({ uniqueId: req.params.img_id }).lean();
-  res.render("image",{image});
+  const image = await Image.findOne({
+    uniqueId: req.params.img_id,
+  }); /* .lean() */
+  if (!image) return res.redirect("/");
+  image.views++;
+  await image.save();
+  const comments = await Comment.find({ imageId: image._id }).lean();
+  res.render("image", { image: image.toJSON(), comments });
 };
 
 exports.createImage = async (req, res) => {
@@ -37,14 +44,42 @@ exports.createImage = async (req, res) => {
   res.redirect(`/images/${uniqueId}`);
 };
 
-exports.likeImage = (req, res) => {
-  res.send("Liking an image");
+exports.likeImage = async (req, res) => {
+  try {
+    const image = await Image.findOne({ uniqueId: req.params.img_id });
+    if (!image) return res.status(404).json({ error: "Image not found" });
+    image.likes++;
+    await image.save();
+    res.json({ likes: image.likes });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-exports.commentImage = (req, res) => {
-  res.send("commenting an image");
+exports.commentImage = async (req, res) => {
+  const image = await Image.findOne({ uniqueId: req.params.img_id });
+  if (!image) return res.redirect("/");
+  const newComment = new Comment(req.body);
+  newComment.gravatar = md5(newComment.email);
+  newComment.imageId = image._id;
+  await newComment.save();
+  res.redirect(`/images/${image.uniqueId}`);
 };
 
-exports.deleteImage = (req, res) => {
-  res.send("deleting an image");
+exports.deleteImage = async (req, res) => {
+  const image = await Image.findOne({ uniqueId: req.params.img_id });
+  if (!image) return res.status(404).json({ error: "Image not found" });
+  console.log(image);
+  try {
+    await fs.unlink(
+      path.resolve(`./src/public/upload/${image.uniqueId + image.ext}`)
+    );
+    await Comment.deleteMany({ imageId: image._id });
+    await image.remove();
+    res.json(true);
+  } catch (e) {
+    console.error(e.message);
+    res.status(500).json(false);
+  }
 };
