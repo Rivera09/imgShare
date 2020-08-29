@@ -4,8 +4,10 @@ const md5 = require("md5");
 
 const { Image, Comment } = require("../models");
 const { randomNumber } = require("../helpers/libs");
+const sidebar = require('../helpers/sidebar');
 
 exports.getImage = async (req, res) => {
+  let viewModel = {image:{}, comments:[]};
   const image = await Image.findOne({
     uniqueId: req.params.img_id,
   }); /* .lean() */
@@ -13,7 +15,10 @@ exports.getImage = async (req, res) => {
   image.views++;
   await image.save();
   const comments = await Comment.find({ imageId: image._id }).lean();
-  res.render("image", { image: image.toJSON(), comments });
+  viewModel.image = image.toJSON();
+  viewModel.comments = comments;
+  viewModel = await sidebar(viewModel);
+  res.render("image", viewModel);
 };
 
 exports.createImage = async (req, res) => {
